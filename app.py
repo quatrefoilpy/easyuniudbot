@@ -68,7 +68,7 @@ def handle_callback(chat_id, callback_query):
         period_code = data.split(':')[3]
         lecture_name = data.split(':')[4]
 
-        send_lecture_info(chat_id=chat_id, year_name=year_name, year_code=year_code, course_code=course_code, period_code=period_code)
+        send_lecture_info(chat_id=chat_id, lecture_name=lecture_name, year_name=year_name, year_code=year_code, course_code=course_code, period_code=period_code)
 
 
 def handle_text(chat_id, text):
@@ -207,7 +207,6 @@ def send_courses_selection(chat_id, query):
         keyboard = {'inline_keyboard': []}
         for year in course.years:
             callback_data = f'one={year.code}:{year.name}:{course.code}'
-            print(len(callback_data.encode('utf-8')))
             row = [{'text': f'{year.name}', 'callback_data': callback_data}]
             keyboard['inline_keyboard'].append(row)
         send_message_with_keyboard(chat_id, title, keyboard)
