@@ -198,7 +198,9 @@ def send_courses_selection(chat_id, query):
         title = f'*{course.name}* \n Anni disponibili:'
         keyboard = {'inline_keyboard': []}
         for year in course.years:
-            row = [{'text': f'{year.name}', 'callback_data': f'one={year.code}:{year.name}:{course.code}:{course.periods_as_string()}'}]
+            callback_data = f'one={year.code}:{year.name}:{course.code}:{course.periods_as_string()}'
+            print(len(callback_data.encode('utf-8')))
+            row = [{'text': f'{year.name}', 'callback_data': callback_data}]
             keyboard['inline_keyboard'].append(row)
         send_message_with_keyboard(chat_id, title, keyboard)
 
