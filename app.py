@@ -1,5 +1,6 @@
 import datetime
 
+import os
 import requests
 from flask import *
 
@@ -20,7 +21,6 @@ app = Flask(__name__)
 @app.route('/5170440192:AAFrr7eCrLszcHoQBIN4H2kg3ssrGgmcPGI', methods=['POST'])
 def handle_message():
     update = request.json
-    print(update)  # todo remove
     try:
         if 'message' in update:
             message = update['message']
@@ -28,7 +28,6 @@ def handle_message():
             if 'text' in message:
                 text = message['text']
                 handle_text(str(chat_id), text)
-                send_message(chat_id, text)  # todo remove
         elif 'callback_query' in update:
             callback = update['callback_query']
             chat_id = callback['message']['chat']['id']
