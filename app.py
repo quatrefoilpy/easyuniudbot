@@ -60,9 +60,15 @@ def handle_callback(chat_id, callback_query):
 
         send_lectures_selection(chat_id=chat_id, year_name=year_name, year_code=year_code, course_code=course_code, period=period_code)
     if 'three=' in callback_query:
-        course_name = callback_query.split('=')[1]
+        data = callback_query.split('=')[1]
 
-        #send_lecture_info(chat_id=chat_id, year_name=year_name, year_code=year_code, course_code=course_code, period_code=period_code)
+        year_code = data.split(':')[0]
+        year_name = data.split(':')[1]
+        course_code = data.split(':')[2]
+        period_code = data.split(':')[3]
+        lecture_name = data.split(':')[4]
+
+        send_lecture_info(chat_id=chat_id, year_name=year_name, year_code=year_code, course_code=course_code, period_code=period_code)
 
 
 def handle_text(chat_id, text):
@@ -159,10 +165,10 @@ Telegram functions
 '''
 
 
-def send_lecture_info(chat_id, data):
-    lectures = get_lectures_by_name(data['lecture'],
-                                    get_lectures(2021, course_code=data['course_code'], name=data['year_label'],
-                                                 year_code=data['year_code'], period=data['period_code']))
+def send_lecture_info(chat_id, lecture_name, course_code, year_name, year_code, period_code):
+    lectures = get_lectures_by_name(lecture_name,
+                                    get_lectures(2021, course_code=course_code, name=year_name,
+                                                 year_code=year_code, period=period_code))
     if len(lectures) > 0:
         text = f"*{lectures[0].name}* \n {lectures[0].teacher} \n\n"
         for lecture in lectures:
@@ -179,7 +185,7 @@ def send_lectures_selection(chat_id, course_code, year_code, year_name, period):
     title = 'Lezioni disponibili per il periodo selezionato:'
     keyboard = {'inline_keyboard': []}
     for lecture in lectures_index:
-        row = [{'text': f'{lecture.name}', 'callback_data': f'three='}]
+        row = [{'text': f'{lecture}', 'callback_data': f'three={year_code}:{year_name}:{course_code}:{period.code}:{lecture}'}]
         keyboard['inline_keyboard'].append(row)
     send_message_with_keyboard(chat_id, title, keyboard)
 
