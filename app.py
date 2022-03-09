@@ -1,9 +1,10 @@
 import datetime
-
 import os
+
 import requests
 from flask import *
 
+from cache import Cache
 from course import Course, Year, Period
 from lecture import Lecture
 
@@ -40,14 +41,31 @@ def handle_message():
 
 def handle_callback(chat_id, callback_query):
     if 'one=' in callback_query:
-        data = json.loads(callback_query.split('=')[1])
-        send_periods_selection(chat_id, data)
+        data = callback_query.split('=')[1]
+
+        year_code = data.split(':')[0]
+        year_name = data.split(':')[1]
+        course_code = data.split(':')[2]
+
+        cache.get_user_session(chat_id).year_name = year_name
+        cache.get_user_session(chat_id).course_code = course_code
+        cache.get_user_session(chat_id).year_code = year_code
+
+        course = get_course_by_code(course_code, cache.get_user_session(chat_id).courses)
+
+        send_periods_selection(chat_id, course)
     if 'two=' in callback_query:
-        data = json.loads(callback_query.split('=')[1])
-        send_lectures_selection(chat_id, data)
+        period_code = callback_query.split('=')[1]
+
+        course_code = cache.get_user_session(chat_id).course_code
+        year_code = cache.get_user_session(chat_id).year_code
+        year_name = cache.get_user_session(chat_id).year_name
+
+        send_lectures_selection(chat_id=chat_id, year_name=year_name, year_code=year_code, course_code=course_code, period=period_code)
     if 'three=' in callback_query:
-        data = json.loads(callback_query.split('=')[1])
-        send_lecture_info(chat_id, data)
+        course_name = callback_query.split('=')[1]
+
+        #send_lecture_info(chat_id=chat_id, year_name=year_name, year_code=year_code, course_code=course_code, period_code=period_code)
 
 
 def handle_text(chat_id, text):
@@ -58,9 +76,7 @@ def handle_text(chat_id, text):
 def get_lectures(year, name, course_code, year_code, period):
     today = datetime.date.today()
     date = today.strftime("%d-%m-%Y")
-    headers = {
-        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
-    }
+    headers = {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'}
     body = f"view=easycourse&form-type=corso&include=corso&txtcurr=&anno={year}&corso={course_code}&anno2%5B%5D={year_code}&visualizzazione_orario=std&date={date}&periodo_didattico={period}&list=0&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0&_lang=it&txtcurr={name}"
     response = requests.post(url=COURSES_URL, headers=headers, data=body).json()
     lectures = []
@@ -117,6 +133,20 @@ def get_lectures_by_name(name, lectures):
     return results
 
 
+def get_course_by_code(code, courses):
+    for course in courses:
+        if course.code == code:
+            return course
+    return None
+
+
+def get_year_by_code(code, course):
+    for year in course.years:
+        if year.code == code:
+            return year
+    return None
+
+
 '''
 Telegram functions
 '''
@@ -135,42 +165,35 @@ def send_lecture_info(chat_id, data):
         send_message(chat_id, 'Nessuna lezione presente!')
 
 
-def send_lectures_selection(chat_id, data):
+def send_lectures_selection(chat_id, course_code, year_code, year_name, period):
     lectures_index = get_lectures_index(
-        get_lectures(year=2021, course_code=data['course_code'], name=data['year_label'], year_code=data['year_code'],
-                     period=data['period_code']))
+        get_lectures(year=2021, course_code=course_code, name=year_name, year_code=year_code,
+                     period=period))
     title = 'Lezioni disponibili per il periodo selezionato:'
     keyboard = {'inline_keyboard': []}
     for lecture in lectures_index:
-        callback_data = data
-        callback_data['lecture'] = lecture.name
-        row = [{'text': f'{lecture.name}', 'callback_data': f'three{json.dumps(callback_data)}'}]
+        row = [{'text': f'{lecture.name}', 'callback_data': f'three'}]
         keyboard['inline_keyboard'].append(row)
     send_message_with_keyboard(chat_id, title, keyboard)
 
 
-def send_periods_selection(chat_id, data):
+def send_periods_selection(chat_id, course):
     title = 'Periodi disponibili'
     keyboard = {'inline_keyboard': []}
-    for period in data['periods']:
-        callback_data = data
-        callback_data['period_code'] = period.code
-        row = [{'text': f'{period.label}', 'callback_data': f'two{json.dumps(callback_data)}'}]
+    for period in course.periods:
+        row = [{'text': f'{period.label}', 'callback_data': f'two={period.code}'}]
         keyboard['inline_keyboard'].append(row)
     send_message_with_keyboard(chat_id, title, keyboard)
 
 
 def send_courses_selection(chat_id, query):
     courses = get_courses_by_name(get_courses(2021), query)
+    cache.get_user_session(chat_id).courses = courses
     for course in courses:
         title = f'*{course.name}* \n Anni disponibili:'
         keyboard = {'inline_keyboard': []}
         for year in course.years:
-            periods_list = ''
-            for period in course.periods:
-                periods_list += period.label + '&' + period.code + '&&'
-            callback_data = f'{course.code}:{year.code}:{year.label}:{periods_list}'
-            row = [{'text': f'{str(year.label)}', 'callback_data': callback_data}]
+            row = [{'text': f'{year.label}', 'callback_data': f'one={year.code}:{year.name}:{course.code}'}]
             keyboard['inline_keyboard'].append(row)
         send_message_with_keyboard(chat_id, title, keyboard)
 
@@ -188,5 +211,7 @@ def send_message(chat_id, text):
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    cache = Cache()
+    with cache as cache:
+        port = int(os.environ.get("PORT", 5000))
+        app.run(host='0.0.0.0', port=port)
