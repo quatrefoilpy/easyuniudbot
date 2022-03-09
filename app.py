@@ -21,7 +21,7 @@ BOT_URL = 'https://easyuniudbot.herokuapp.com'
 app = Flask(__name__)
 
 
-@app.route('/1091562071:AAEQ5eVuRSWS-9tj0c24KTNRA9sQ004ahfA', methods=['POST'])
+@app.route('/5170440192:AAFrr7eCrLszcHoQBIN4H2kg3ssrGgmcPGI', methods=['POST'])
 def handle_message():
     update = request.json
     try:
