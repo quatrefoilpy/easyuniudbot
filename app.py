@@ -176,9 +176,9 @@ def send_courses_selection(chat_id, query):
                 periods_list[period.label] = period.code
             callback_data = {'course_code': course.code, 'year_code': year.code, 'year_label': year.label,
                              'periods': periods_list}
-            row = [{'text': f'{year.label}', 'callback_data': ''}] #f'step_one={json.dumps(callback_data)}'}]
+            row = [{'text': f'{year.label}', 'callback_data': 'test'}] #f'step_one={json.dumps(callback_data)}'}]
             keyboard['inline_keyboard'].append(row)
-        send_message_with_keyboard(chat_id, title, keyboard)
+        send_message(chat_id, title)
 
 
 def send_message_with_keyboard(chat_id, text, keyboard):  # message keyboard
