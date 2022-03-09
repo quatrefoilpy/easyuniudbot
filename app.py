@@ -161,11 +161,11 @@ def get_periods_from_string(periods_string):
     return result
 
 
-def compress_callback_data(data):
-    return zlib.compress(data)  # .decode('utf-8')
+def compress_callback_data(data: str):
+    return zlib.compress(data.encode('utf-8'))
 
 
-def decompress_callback_data(data):
+def decompress_callback_data(data) -> str:
     return zlib.decompress(data).decode('utf-8')
 
 
