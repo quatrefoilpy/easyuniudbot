@@ -64,12 +64,13 @@ def get_lectures(year, name, course_code, year_code, period):
     }
     body = f"view=easycourse&form-type=corso&include=corso&txtcurr=&anno={year}&corso={course_code}&anno2%5B%5D={year_code}&visualizzazione_orario=std&date={date}&periodo_didattico={period}&list=0&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0&_lang=it&txtcurr={name}"
     response = requests.post(url=COURSES_URL, headers=headers, data=body).json()
-    print(response)  # todo remove
     lectures = []
     for cell in response['celle']:
         lecture = Lecture(name=cell['nome_insegnamento'], time=cell['orario'], teacher=cell['docente'],
                           day=WEEK_DAYS[int(cell['giorno']) - 1], room=cell['aula'])
         lectures.append(lecture)
+    for l in lectures:
+        print(l.name)
     return lectures
 
 
@@ -79,7 +80,6 @@ def get_courses(year):
     json_end = response.find('\n')
     json_string = '{ "courses": ' + response[json_start:json_end].replace(';', '') + '}'
     courses = json.loads(json_string)['courses']
-    print(courses)  # todo remove
     courses_list = []
     for course in courses:
         years = course['elenco_anni']
@@ -93,6 +93,8 @@ def get_courses(year):
             c.add_year(
                 Year(code=year['valore'], number=year['valore'][year['valore'].find('|') + 1:], label=year['label']))
         courses_list.append(c)
+    for c in courses_list:
+        print(c.name)
     return courses_list
 
 
@@ -165,6 +167,7 @@ def send_periods_selection(chat_id, data):
 
 def send_courses_selection(chat_id, query):
     courses = get_courses_by_name(get_courses(2021), query)
+    print('Courses len: ' + str(len(courses)))
     for course in courses:
         title = f'*{course.name}* \n Anni disponibili:'
         keyboard = {'inline_keyboard': []}
