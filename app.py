@@ -68,8 +68,6 @@ def get_lectures(year, name, course_code, year_code, period):
         lecture = Lecture(name=cell['nome_insegnamento'], time=cell['orario'], teacher=cell['docente'],
                           day=WEEK_DAYS[int(cell['giorno']) - 1], room=cell['aula'])
         lectures.append(lecture)
-    for l in lectures:
-        print(l.name)
     return lectures
 
 
@@ -92,8 +90,6 @@ def get_courses(year):
             c.add_year(
                 Year(code=year['valore'], number=year['valore'][year['valore'].find('|') + 1:], label=year['label']))
         courses_list.append(c)
-    for c in courses_list:
-        print(c.name)
     return courses_list
 
 
@@ -166,7 +162,6 @@ def send_periods_selection(chat_id, data):
 
 def send_courses_selection(chat_id, query):
     courses = get_courses_by_name(get_courses(2021), query)
-    print('Courses len: ' + str(len(courses)))
     for course in courses:
         title = f'*{course.name}* \n Anni disponibili:'
         keyboard = {'inline_keyboard': []}
@@ -177,7 +172,7 @@ def send_courses_selection(chat_id, query):
             callback = {'course_code': course.code, 'year_code': year.code, 'year_label': year.label,
                         'periods': periods_list}
             callback_data = json.dumps(callback)
-            row = [{'text': f'{str(year.label)}', 'callback_data': f'one={callback_data}'}]
+            row = [{'text': f'{str(year.label)}', 'callback_data': 'test'}]#f'one={callback_data}'}]
             keyboard['inline_keyboard'].append(row)
         send_message_with_keyboard(chat_id, title, keyboard)
 
