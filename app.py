@@ -39,13 +39,13 @@ def handle_message():
 
 
 def handle_callback(chat_id, callback_query):
-    if 'step_one=' in callback_query:
+    if 'one=' in callback_query:
         data = json.loads(callback_query.split('=')[1])
         send_periods_selection(chat_id, data)
-    if 'step_two=' in callback_query:
+    if 'two=' in callback_query:
         data = json.loads(callback_query.split('=')[1])
         send_lectures_selection(chat_id, data)
-    if 'step_three=' in callback_query:
+    if 'three=' in callback_query:
         data = json.loads(callback_query.split('=')[1])
         send_lecture_info(chat_id, data)
 
@@ -148,7 +148,7 @@ def send_lectures_selection(chat_id, data):
     for lecture in lectures_index:
         callback_data = data
         callback_data['lecture'] = lecture.name
-        row = [{'text': f'{lecture.name}', 'callback_data': f'step_three{json.dumps(callback_data)}'}]
+        row = [{'text': f'{lecture.name}', 'callback_data': f'three{json.dumps(callback_data)}'}]
         keyboard['inline_keyboard'].append(row)
     send_message_with_keyboard(chat_id, title, keyboard)
 
@@ -159,7 +159,7 @@ def send_periods_selection(chat_id, data):
     for period in data['periods']:
         callback_data = data
         callback_data['period_code'] = period.code
-        row = [{'text': f'{period.label}', 'callback_data': f'step_two{json.dumps(callback_data)}'}]
+        row = [{'text': f'{period.label}', 'callback_data': f'two{json.dumps(callback_data)}'}]
         keyboard['inline_keyboard'].append(row)
     send_message_with_keyboard(chat_id, title, keyboard)
 
@@ -174,11 +174,12 @@ def send_courses_selection(chat_id, query):
             periods_list = {}
             for period in course.periods:
                 periods_list[period.label] = period.code
-            callback_data = {'course_code': course.code, 'year_code': year.code, 'year_label': year.label,
-                             'periods': periods_list}
-            row = [{'text': f'{year.label}', 'callback_data': 'test'}] #f'step_one={json.dumps(callback_data)}'}]
+            callback = {'course_code': course.code, 'year_code': year.code, 'year_label': year.label,
+                        'periods': periods_list}
+            callback_data = json.dumps(callback)
+            row = [{'text': f'{str(year.label)}', 'callback_data': f'one={callback_data}'}]
             keyboard['inline_keyboard'].append(row)
-        send_message(chat_id, title)
+        send_message_with_keyboard(chat_id, title, keyboard)
 
 
 def send_message_with_keyboard(chat_id, text, keyboard):  # message keyboard
