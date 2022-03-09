@@ -39,6 +39,7 @@ def handle_message():
 
 
 def handle_callback(chat_id, callback_query):
+    print(callback_query)
     if 'one=' in callback_query:
         data = callback_query.split('=')[1]
 
@@ -178,7 +179,7 @@ def send_lectures_selection(chat_id, course_code, year_code, year_name, period):
     title = 'Lezioni disponibili per il periodo selezionato:'
     keyboard = {'inline_keyboard': []}
     for lecture in lectures_index:
-        row = [{'text': f'{lecture.name}', 'callback_data': f'three'}]
+        row = [{'text': f'{lecture.name}', 'callback_data': f'three='}]
         keyboard['inline_keyboard'].append(row)
     send_message_with_keyboard(chat_id, title, keyboard)
 
@@ -212,7 +213,6 @@ def send_message_with_keyboard(chat_id, text, keyboard):  # message keyboard
     r = requests.post(TELEGRAM_ENDPOINT + '/sendMessage', headers=headers, json=payload)
     print(r.status_code)
     print(r.content)
-    print(r.text)
 
 
 def send_message(chat_id, text):
