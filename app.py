@@ -1,5 +1,6 @@
 import datetime
 import os
+import zlib
 
 import requests
 from flask import *
@@ -37,8 +38,9 @@ def handle_message():
     return update
 
 
-def handle_callback(chat_id, callback_query):
-    print(callback_query)
+def handle_callback(chat_id, callback_data):
+    print(callback_data)
+    callback_query = decompress_callback_data(callback_data)
     if 'one=' in callback_query:
         data = callback_query.split('=')[1]
 
@@ -159,6 +161,14 @@ def get_periods_from_string(periods_string):
     return result
 
 
+def compress_callback_data(data):
+    return zlib.compress(data)  # .decode('utf-8')
+
+
+def decompress_callback_data(data):
+    return zlib.decompress(data).decode('utf-8')
+
+
 '''
 Telegram functions
 '''
@@ -186,7 +196,7 @@ def send_lectures_selection(chat_id, course_code, year_code, year_name, period_c
     for lecture in lectures_index:
         callback_data = f'three={year_code}:{year_name}:{course_code}:{period_code}:{lecture}'
         print(f'callback_data payload len: {str(len(callback_data.encode("utf-8")))}')
-        row = [{'text': f'{lecture}', 'callback_data': callback_data}]
+        row = [{'text': f'{lecture}', 'callback_data': compress_callback_data(callback_data)}]
         keyboard['inline_keyboard'].append(row)
     send_message_with_keyboard(chat_id, title, keyboard)
 
@@ -195,7 +205,8 @@ def send_periods_selection(chat_id, year_code, year_name, course_code, periods):
     title = 'Periodi disponibili'
     keyboard = {'inline_keyboard': []}
     for period in periods:
-        row = [{'text': f'{period.name}', 'callback_data': f'two={year_code}:{year_name}:{course_code}:{period.code}'}]
+        callback_data = f'two={year_code}:{year_name}:{course_code}:{period.code}'
+        row = [{'text': f'{period.name}', 'callback_data': compress_callback_data(callback_data)}]
         keyboard['inline_keyboard'].append(row)
     send_message_with_keyboard(chat_id, title, keyboard)
 
@@ -207,7 +218,7 @@ def send_courses_selection(chat_id, query):
         keyboard = {'inline_keyboard': []}
         for year in course.years:
             callback_data = f'one={year.code}:{year.name}:{course.code}'
-            row = [{'text': f'{year.name}', 'callback_data': callback_data}]
+            row = [{'text': f'{year.name}', 'callback_data': compress_callback_data(callback_data)}]
             keyboard['inline_keyboard'].append(row)
         send_message_with_keyboard(chat_id, title, keyboard)
 
