@@ -16,7 +16,7 @@ class Course:
     def periods_as_string(self):
         result = ''
         for period in self.periods:
-            result += period.as_string() + '_'
+            result += period.as_string() + '.'
         return result
 
 
@@ -27,7 +27,7 @@ class Period:
         self.name = name
 
     def as_string(self):
-        return self.name + '-' + self.code
+        return self.name + ';' + self.code
 
 
 class Year:

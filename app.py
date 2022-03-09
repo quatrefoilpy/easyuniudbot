@@ -144,10 +144,10 @@ def get_year_by_code(code, course):
 
 def get_periods_from_string(periods_string):
     result = []
-    if '-' in periods_string and '_' in periods_string:
-        periods = periods_string.split('_')
+    if '-' in periods_string and '.' in periods_string:
+        periods = periods_string.split('.')
         for period in periods:
-            parts = period.split('-')
+            parts = period.split(';')
             result.append(Period(parts[0], parts[1]))
     return result
 
