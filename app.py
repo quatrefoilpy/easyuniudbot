@@ -14,7 +14,7 @@ WEEK_DAYS = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì']
 
 TELEGRAM_ENDPOINT = 'https://api.telegram.org/bot5170440192:AAFrr7eCrLszcHoQBIN4H2kg3ssrGgmcPGI'
 BOT_TOKEN = '5170440192:AAFrr7eCrLszcHoQBIN4H2kg3ssrGgmcPGI'
-BOT_URL = 'https://easyuniudbot.herokuapp.com'
+
 
 app = Flask(__name__)
 
@@ -22,6 +22,7 @@ app = Flask(__name__)
 @app.route('/5170440192:AAFrr7eCrLszcHoQBIN4H2kg3ssrGgmcPGI', methods=['POST'])
 def handle_message():
     update = request.json
+    print(update)
     try:
         if 'message' in update:
             message = update['message']
@@ -29,6 +30,7 @@ def handle_message():
             if 'text' in message:
                 text = message['text']
                 handle_text(str(chat_id), text)
+                send_message(chat_id, text)  # todo remove
         elif 'callback_query' in update:
             callback = update['callback_query']
             chat_id = callback['message']['chat']['id']
@@ -54,8 +56,6 @@ def handle_callback(chat_id, callback_query):
 def handle_text(chat_id, text):
     if '/' not in text:
         send_courses_selection(chat_id, text)
-    elif '/info' in text:
-        send_message(chat_id, 'Ciao, sono EasyUniudBot')
 
 
 def get_lectures(year, name, course_code, year_code, period):
