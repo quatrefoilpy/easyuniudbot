@@ -22,17 +22,17 @@ class Course:
 
 class Period:
 
-    def __init__(self, code, label):
+    def __init__(self, code, name):
         self.code = code
-        self.label = label
+        self.name = name
 
     def as_string(self):
-        return self.label + '-' + self.code
+        return self.name + '-' + self.code
 
 
 class Year:
 
-    def __init__(self, code, number, label):
+    def __init__(self, code, number, name):
         self.code = code
         self.number = number
-        self.label = label
+        self.name = name

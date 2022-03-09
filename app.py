@@ -96,10 +96,10 @@ def get_courses(year):
                    course_type=course['tipo'],
                    name=course['label'] + ' - ' + course['tipo'])
         for period in periods:
-            c.add_period(Period(code=period['valore'], label=period['label']))
+            c.add_period(Period(code=period['valore'], name=period['label']))
         for year in years:
             c.add_year(
-                Year(code=year['valore'], number=year['valore'][year['valore'].find('|') + 1:], label=year['label']))
+                Year(code=year['valore'], number=year['valore'][year['valore'].find('|') + 1:], name=year['label']))
         courses_list.append(c)
     return courses_list
 
@@ -186,7 +186,7 @@ def send_periods_selection(chat_id, year_code, year_name, course_code, periods):
     title = 'Periodi disponibili'
     keyboard = {'inline_keyboard': []}
     for period in periods:
-        row = [{'text': f'{period.label}', 'callback_data': f'two={year_code}:{year_name}:{course_code}:{period.code}'}]
+        row = [{'text': f'{period.name}', 'callback_data': f'two={year_code}:{year_name}:{course_code}:{period.code}'}]
         keyboard['inline_keyboard'].append(row)
     send_message_with_keyboard(chat_id, title, keyboard)
 
@@ -197,7 +197,7 @@ def send_courses_selection(chat_id, query):
         title = f'*{course.name}* \n Anni disponibili:'
         keyboard = {'inline_keyboard': []}
         for year in course.years:
-            row = [{'text': f'{year.label}', 'callback_data': f'one={year.code}:{year.name}:{course.code}'}]
+            row = [{'text': f'{year.name}', 'callback_data': f'one={year.code}:{year.name}:{course.code}'}]
             keyboard['inline_keyboard'].append(row)
         send_message_with_keyboard(chat_id, title, keyboard)
 
