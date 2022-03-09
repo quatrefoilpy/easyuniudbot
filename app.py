@@ -193,11 +193,12 @@ def send_periods_selection(chat_id, year_code, year_name, course_code, periods):
 
 def send_courses_selection(chat_id, query):
     courses = get_courses_by_name(get_courses(2021), query)
+    print(f'Courses len: {str(len(courses))}')
     for course in courses:
         title = f'*{course.name}* \n Anni disponibili:'
         keyboard = {'inline_keyboard': []}
         for year in course.years:
-            row = [{'text': f'{year.name}', 'callback_data': f'one={year.code}:{year.name}:{course.code}'}]
+            row = [{'text': f'{year.name}', 'callback_data': f'one={year.code}:{year.name}:{course.code}:{course.periods_as_string()}'}]
             keyboard['inline_keyboard'].append(row)
         send_message_with_keyboard(chat_id, title, keyboard)
 
