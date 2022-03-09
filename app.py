@@ -162,11 +162,11 @@ def get_periods_from_string(periods_string):
 
 
 def compress_callback_data(data: str):
-    return zlib.compress(data.encode('utf-8'))
+    return zlib.compress(data.encode('utf-8')).decode('utf-8')
 
 
 def decompress_callback_data(data) -> str:
-    return zlib.decompress(data).decode('utf-8')
+    return zlib.decompress(data.encode('utf-8')).decode('utf-8')
 
 
 '''
