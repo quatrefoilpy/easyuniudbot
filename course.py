@@ -13,21 +13,12 @@ class Course:
     def add_period(self, period):
         self.periods.append(period)
 
-    def periods_as_string(self):
-        result = ''
-        for period in self.periods:
-            result += period.as_string() + '.'
-        return result
-
 
 class Period:
 
     def __init__(self, code, name):
         self.code = code
         self.name = name
-
-    def as_string(self):
-        return self.name + ';' + self.code
 
 
 class Year:

@@ -45,7 +45,8 @@ def handle_callback(chat_id, callback_query):
         year_code = data.split(':')[0]
         year_name = data.split(':')[1]
         course_code = data.split(':')[2]
-        periods = get_periods_from_string(data.split(':')[3])
+
+        periods = get_course_by_code(course_code, get_courses(2021)).periods
 
         send_periods_selection(chat_id, year_code, year_name, course_code, periods)
     if 'two=' in callback_query:
@@ -198,7 +199,7 @@ def send_courses_selection(chat_id, query):
         title = f'*{course.name}* \n Anni disponibili:'
         keyboard = {'inline_keyboard': []}
         for year in course.years:
-            callback_data = f'one={year.code}:{year.name}:{course.code}:{course.periods_as_string()}'
+            callback_data = f'one={year.code}:{year.name}:{course.code}'
             print(len(callback_data.encode('utf-8')))
             row = [{'text': f'{year.name}', 'callback_data': callback_data}]
             keyboard['inline_keyboard'].append(row)
