@@ -2,7 +2,6 @@ import datetime
 
 import requests
 from flask import *
-from speech_recognition import *
 
 from course import Course, Year, Period
 from lecture import Lecture
