@@ -1,6 +1,5 @@
 import datetime
 import os
-import zlib
 
 import requests
 from flask import *
@@ -14,6 +13,7 @@ WEEK_DAYS = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì']
 
 TELEGRAM_ENDPOINT = 'https://api.telegram.org/bot5170440192:AAFrr7eCrLszcHoQBIN4H2kg3ssrGgmcPGI'
 BOT_TOKEN = '5170440192:AAFrr7eCrLszcHoQBIN4H2kg3ssrGgmcPGI'
+
 
 app = Flask(__name__)
 
@@ -38,9 +38,7 @@ def handle_message():
     return update
 
 
-def handle_callback(chat_id, callback_data):
-    print(callback_data)
-    callback_query = decompress_callback_data(callback_data)
+def handle_callback(chat_id, callback_query):
     if 'one=' in callback_query:
         data = callback_query.split('=')[1]
 
@@ -161,14 +159,6 @@ def get_periods_from_string(periods_string):
     return result
 
 
-def compress_callback_data(data: str):
-    return zlib.compress(data.encode('utf-8')).decode('utf-8')
-
-
-def decompress_callback_data(data) -> str:
-    return zlib.decompress(data.encode('utf-8')).decode('utf-8')
-
-
 '''
 Telegram functions
 '''
@@ -188,17 +178,20 @@ def send_lecture_info(chat_id, lecture_name, course_code, year_name, year_code, 
 
 
 def send_lectures_selection(chat_id, course_code, year_code, year_name, period_code):
-    lectures_index = get_lectures_index(
+    lectures = get_lectures_index(
         get_lectures(year=2021, course_code=course_code, name=year_name, year_code=year_code,
                      period=period_code))
-    title = 'Lezioni disponibili per il periodo selezionato:'
-    keyboard = {'inline_keyboard': []}
-    for lecture in lectures_index:
-        callback_data = f'three={year_code}:{year_name}:{course_code}:{period_code}:{lecture}'
-        print(f'callback_data payload len: {str(len(callback_data.encode("utf-8")))}')
-        row = [{'text': f'{lecture}', 'callback_data': compress_callback_data(callback_data)}]
-        keyboard['inline_keyboard'].append(row)
-    send_message_with_keyboard(chat_id, title, keyboard)
+    if len(lectures) > 0:
+        title = 'Lezioni disponibili per il periodo selezionato:'
+        keyboard = {'inline_keyboard': []}
+        for lecture in lectures:
+            callback_data = f'three={year_code}:{year_name}:{course_code}:{period_code}:{lecture}'
+            print(f'callback_data payload len: {str(len(callback_data.encode("utf-8")))}')
+            row = [{'text': f'{lecture}', 'callback_data': callback_data}]
+            keyboard['inline_keyboard'].append(row)
+        send_message_with_keyboard(chat_id, title, keyboard)
+    else:
+        send_message(chat_id, 'Nessuna lezione presente per il periodo selezionato')
 
 
 def send_periods_selection(chat_id, year_code, year_name, course_code, periods):
@@ -206,21 +199,24 @@ def send_periods_selection(chat_id, year_code, year_name, course_code, periods):
     keyboard = {'inline_keyboard': []}
     for period in periods:
         callback_data = f'two={year_code}:{year_name}:{course_code}:{period.code}'
-        row = [{'text': f'{period.name}', 'callback_data': compress_callback_data(callback_data)}]
+        row = [{'text': f'{period.name}', 'callback_data': callback_data}]
         keyboard['inline_keyboard'].append(row)
     send_message_with_keyboard(chat_id, title, keyboard)
 
 
 def send_courses_selection(chat_id, query):
     courses = get_courses_by_name(get_courses(2021), query)
-    for course in courses:
-        title = f'*{course.name}* \n Anni disponibili:'
-        keyboard = {'inline_keyboard': []}
-        for year in course.years:
-            callback_data = f'one={year.code}:{year.name}:{course.code}'
-            row = [{'text': f'{year.name}', 'callback_data': compress_callback_data(callback_data)}]
-            keyboard['inline_keyboard'].append(row)
-        send_message_with_keyboard(chat_id, title, keyboard)
+    if (len(courses)) > 0:
+        for course in courses:
+            title = f'*{course.name}* \n Anni disponibili:'
+            keyboard = {'inline_keyboard': []}
+            for year in course.years:
+                callback_data = f'one={year.code}:{year.name}:{course.code}'
+                row = [{'text': f'{year.name}', 'callback_data': callback_data}]
+                keyboard['inline_keyboard'].append(row)
+            send_message_with_keyboard(chat_id, title, keyboard)
+    else:
+        send_message(chat_id, 'Nessun corso con questo nome trovato')
 
 
 def send_message_with_keyboard(chat_id, text, keyboard):  # message keyboard
