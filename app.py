@@ -14,7 +14,6 @@ WEEK_DAYS = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì']
 TELEGRAM_ENDPOINT = 'https://api.telegram.org/bot5170440192:AAFrr7eCrLszcHoQBIN4H2kg3ssrGgmcPGI'
 BOT_TOKEN = '5170440192:AAFrr7eCrLszcHoQBIN4H2kg3ssrGgmcPGI'
 
-
 app = Flask(__name__)
 
 
@@ -65,7 +64,7 @@ def get_lectures(year, name, course_code, year_code, period):
     }
     body = f"view=easycourse&form-type=corso&include=corso&txtcurr=&anno={year}&corso={course_code}&anno2%5B%5D={year_code}&visualizzazione_orario=std&date={date}&periodo_didattico={period}&list=0&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0&_lang=it&txtcurr={name}"
     response = requests.post(url=COURSES_URL, headers=headers, data=body).json()
-    print(response)   # todo remove
+    print(response)  # todo remove
     lectures = []
     for cell in response['celle']:
         lecture = Lecture(name=cell['nome_insegnamento'], time=cell['orario'], teacher=cell['docente'],
@@ -100,7 +99,7 @@ def get_courses(year):
 def get_courses_by_name(courses, name):
     results = []
     for course in courses:
-        if name in course.name:
+        if name.lower() in course.name.lower():
             results.append(course)
     return results
 
@@ -116,7 +115,7 @@ def get_lectures_index(lectures):
 def get_lectures_by_name(name, lectures):
     results = []
     for lecture in lectures:
-        if name in lecture.name:
+        if name.lower() in lecture.name.lower():
             lectures.append(lecture)
     return results
 
@@ -175,7 +174,7 @@ def send_courses_selection(chat_id, query):
                 periods_list[period.label] = period.code
             callback_data = {'course_code': course.code, 'year_code': year.code, 'year_label': year.label,
                              'periods': periods_list}
-            row = [{'text': f'{year.label}', 'callback_data': f'step_one={json.dumps(callback_data)}'}]
+            row = [{'text': f'{year.label}', 'callback_data': ''}] #f'step_one={json.dumps(callback_data)}'}]
             keyboard['inline_keyboard'].append(row)
         send_message_with_keyboard(chat_id, title, keyboard)
 
