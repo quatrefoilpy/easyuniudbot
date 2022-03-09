@@ -184,7 +184,9 @@ def send_lectures_selection(chat_id, course_code, year_code, year_name, period_c
     title = 'Lezioni disponibili per il periodo selezionato:'
     keyboard = {'inline_keyboard': []}
     for lecture in lectures_index:
-        row = [{'text': f'{lecture}', 'callback_data': f'three={year_code}:{year_name}:{course_code}:{period_code}:{lecture}'}]
+        callback_data = f'three={year_code}:{year_name}:{course_code}:{period_code}:{lecture}'
+        print(f'callback_data payload len: {str(len(callback_data.encode("utf-8")))}')
+        row = [{'text': f'{lecture}', 'callback_data': callback_data}]
         keyboard['inline_keyboard'].append(row)
     send_message_with_keyboard(chat_id, title, keyboard)
 
@@ -200,7 +202,6 @@ def send_periods_selection(chat_id, year_code, year_name, course_code, periods):
 
 def send_courses_selection(chat_id, query):
     courses = get_courses_by_name(get_courses(2021), query)
-    print(f'Courses len: {str(len(courses))}')
     for course in courses:
         title = f'*{course.name}* \n Anni disponibili:'
         keyboard = {'inline_keyboard': []}
@@ -215,7 +216,6 @@ def send_message_with_keyboard(chat_id, text, keyboard):  # message keyboard
     headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
     payload = {'chat_id': chat_id, 'text': text, 'reply_markup': keyboard, 'parse_mode': 'Markdown'}
     r = requests.post(TELEGRAM_ENDPOINT + '/sendMessage', headers=headers, json=payload)
-    print(r.status_code)
     print(r.content)
 
 
