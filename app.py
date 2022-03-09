@@ -206,7 +206,10 @@ def send_courses_selection(chat_id, query):
 def send_message_with_keyboard(chat_id, text, keyboard):  # message keyboard
     headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
     payload = {'chat_id': chat_id, 'text': text, 'reply_markup': keyboard, 'parse_mode': 'Markdown'}
-    requests.post(TELEGRAM_ENDPOINT + '/sendMessage', headers=headers, json=payload)
+    r = requests.post(TELEGRAM_ENDPOINT + '/sendMessage', headers=headers, json=payload)
+    print(r.status_code)
+    print(r.content)
+    print(r.text)
 
 
 def send_message(chat_id, text):
