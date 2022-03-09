@@ -1,9 +1,7 @@
 import datetime
 
 import requests
-import speech_recognition
 from flask import *
-from pydub import AudioSegment
 from speech_recognition import *
 
 from course import Course, Year, Period
@@ -31,9 +29,6 @@ def handle_message():
             if 'text' in message:
                 text = message['text']
                 handle_text(str(chat_id), text)
-            elif 'voice' in message:
-                file_id = message['voice']['file_id']
-                handle_voice(str(chat_id), file_id)
         elif 'callback_query' in update:
             callback = update['callback_query']
             chat_id = callback['message']['chat']['id']
@@ -42,28 +37,6 @@ def handle_message():
     except Exception as e:
         print(e)
     return update
-
-
-def handle_voice(chat_id, file_id):
-    file_url = f'https://api.telegram.org/bot1091562071:AAEQ5eVuRSWS-9tj0c24KTNRA9sQ004ahfA/getFile?file_id={file_id}'
-    response = requests.get(url=file_url)
-    file_info = response.json()
-    file_path = file_info['result']['file_path']
-    download_url = f'https://api.telegram.org/file/bot1091562071:AAEQ5eVuRSWS-9tj0c24KTNRA9sQ004ahfA/{file_path}'
-    r = requests.get(download_url)
-    with open(chat_id + '.oga', 'wb') as file:
-        file.write(r.content)
-    AudioSegment.from_ogg(chat_id + '.oga').export(chat_id + '.wav', format='wav')
-    recognizer = speech_recognition.Recognizer()
-    with speech_recognition.AudioFile(chat_id + '.wav') as source:
-        audio = recognizer.record(source)
-        try:
-            input_text = recognizer.recognize_google(audio)
-            handle_text(chat_id, input_text)
-        except speech_recognition.UnknownValueError:
-            send_message(chat_id, 'Impossibile elaborare correttamente il messaggio vocale, riprovare più tardi')
-        except speech_recognition.RequestError:
-            send_message(chat_id, 'Impossibile elaborare correttamente il messaggio vocale, riprovare più tardi')
 
 
 def handle_callback(chat_id, callback_query):
@@ -81,6 +54,8 @@ def handle_callback(chat_id, callback_query):
 def handle_text(chat_id, text):
     if '/' not in text:
         send_courses_selection(chat_id, text)
+    elif '/info' in text:
+        send_message(chat_id, 'Ciao, sono EasyUniudBot')
 
 
 def get_lectures(year, name, course_code, year_code, period):
@@ -204,14 +179,6 @@ def send_courses_selection(chat_id, query):
         send_message_with_keyboard(chat_id, title, keyboard)
 
 
-def ask_location(chat_id):
-    keyboard = {
-        'keyboard': [[{'text': '\uD83D\uDCCD Condividi la tua posizione', 'request_location': True}],
-                     [{'text': '\u274C Annulla'}]],
-        'one_time_keyboard': True}
-    send_keyboard(chat_id, keyboard)
-
-
 def send_message_with_keyboard(chat_id, text, keyboard):  # message keyboard
     headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
     payload = {'chat_id': chat_id, 'text': text, 'reply_markup': keyboard, 'parse_mode': 'Markdown'}
@@ -221,12 +188,6 @@ def send_message_with_keyboard(chat_id, text, keyboard):  # message keyboard
 def send_message(chat_id, text):
     headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
     payload = {'chat_id': chat_id, 'text': text, 'parse_mode': 'Markdown'}
-    requests.post(TELEGRAM_ENDPOINT + '/sendMessage', headers=headers, json=payload)
-
-
-def send_keyboard(chat_id, keyboard):
-    headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
-    payload = {'chat_id': chat_id, 'reply_markup': keyboard, 'text': 'Scegli una opzione', 'parse_mode': 'Markdown'}
     requests.post(TELEGRAM_ENDPOINT + '/sendMessage', headers=headers, json=payload)
 
 
