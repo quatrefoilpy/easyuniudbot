@@ -4,7 +4,6 @@ import os
 import requests
 from flask import *
 
-from cache import Cache
 from course import Course, Year, Period
 from lecture import Lecture
 
@@ -46,20 +45,16 @@ def handle_callback(chat_id, callback_query):
         year_code = data.split(':')[0]
         year_name = data.split(':')[1]
         course_code = data.split(':')[2]
+        periods = get_periods_from_string(data.split(':')[3])
 
-        cache.get_user_session(chat_id).year_name = year_name
-        cache.get_user_session(chat_id).course_code = course_code
-        cache.get_user_session(chat_id).year_code = year_code
-
-        course = get_course_by_code(course_code, cache.get_user_session(chat_id).courses)
-
-        send_periods_selection(chat_id, course)
+        send_periods_selection(chat_id, year_code, year_name, course_code, periods)
     if 'two=' in callback_query:
-        period_code = callback_query.split('=')[1]
+        data = callback_query.split('=')[1]
 
-        course_code = cache.get_user_session(chat_id).course_code
-        year_code = cache.get_user_session(chat_id).year_code
-        year_name = cache.get_user_session(chat_id).year_name
+        year_code = data.split(':')[0]
+        year_name = data.split(':')[1]
+        course_code = data.split(':')[2]
+        period_code = data.split(':')[3]
 
         send_lectures_selection(chat_id=chat_id, year_name=year_name, year_code=year_code, course_code=course_code, period=period_code)
     if 'three=' in callback_query:
@@ -147,6 +142,16 @@ def get_year_by_code(code, course):
     return None
 
 
+def get_periods_from_string(periods_string):
+    result = []
+    if '-' in periods_string and '_' in periods_string:
+        periods = periods_string.split('_')
+        for period in periods:
+            parts = period.split('-')
+            result.append(Period(parts[0], parts[1]))
+    return result
+
+
 '''
 Telegram functions
 '''
@@ -177,18 +182,17 @@ def send_lectures_selection(chat_id, course_code, year_code, year_name, period):
     send_message_with_keyboard(chat_id, title, keyboard)
 
 
-def send_periods_selection(chat_id, course):
+def send_periods_selection(chat_id, year_code, year_name, course_code, periods):
     title = 'Periodi disponibili'
     keyboard = {'inline_keyboard': []}
-    for period in course.periods:
-        row = [{'text': f'{period.label}', 'callback_data': f'two={period.code}'}]
+    for period in periods:
+        row = [{'text': f'{period.label}', 'callback_data': f'two={year_code}:{year_name}:{course_code}:{period.code}'}]
         keyboard['inline_keyboard'].append(row)
     send_message_with_keyboard(chat_id, title, keyboard)
 
 
 def send_courses_selection(chat_id, query):
     courses = get_courses_by_name(get_courses(2021), query)
-    cache.get_user_session(chat_id).courses = courses
     for course in courses:
         title = f'*{course.name}* \n Anni disponibili:'
         keyboard = {'inline_keyboard': []}
@@ -211,7 +215,5 @@ def send_message(chat_id, text):
 
 
 if __name__ == '__main__':
-    cache = Cache()
-    with cache as cache:
-        port = int(os.environ.get("PORT", 5000))
-        app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
