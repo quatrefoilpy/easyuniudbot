@@ -4,8 +4,7 @@ import os
 import requests
 from flask import *
 
-from course import Course, Year, Period
-from lecture import Lecture
+from course import Course, Year, Period, Lecture
 
 COURSES_URL = 'https://planner.uniud.it/PortaleStudenti/grid_call.php'
 COURSES_INDEX_URL = 'https://planner.uniud.it/PortaleStudenti/combo.php'
@@ -58,7 +57,7 @@ def handle_callback(chat_id, callback_query):
         course_code = data.split(':')[2]
         period_code = data.split(':')[3]
 
-        send_lectures_selection(chat_id=chat_id, year_name=year_name, year_code=year_code, course_code=course_code, period=period_code)
+        send_lectures_selection(chat_id=chat_id, year_name=year_name, year_code=year_code, course_code=course_code, period_code=period_code)
     if 'three=' in callback_query:
         data = callback_query.split('=')[1]
 
@@ -178,14 +177,14 @@ def send_lecture_info(chat_id, lecture_name, course_code, year_name, year_code, 
         send_message(chat_id, 'Nessuna lezione presente!')
 
 
-def send_lectures_selection(chat_id, course_code, year_code, year_name, period):
+def send_lectures_selection(chat_id, course_code, year_code, year_name, period_code):
     lectures_index = get_lectures_index(
         get_lectures(year=2021, course_code=course_code, name=year_name, year_code=year_code,
-                     period=period))
+                     period=period_code))
     title = 'Lezioni disponibili per il periodo selezionato:'
     keyboard = {'inline_keyboard': []}
     for lecture in lectures_index:
-        row = [{'text': f'{lecture}', 'callback_data': f'three={year_code}:{year_name}:{course_code}:{period.code}:{lecture}'}]
+        row = [{'text': f'{lecture}', 'callback_data': f'three={year_code}:{year_name}:{course_code}:{period_code}:{lecture}'}]
         keyboard['inline_keyboard'].append(row)
     send_message_with_keyboard(chat_id, title, keyboard)
 
